@@ -6,6 +6,7 @@ A thin, full-stack, **web** framework.
 
 - [Documentation website (gracile.netlify.app)](https://gracile.netlify.app/)
 - [Main repository](https://github.com/gracile-web/gracile)
+- [Content index (src/content)](./src/content)
 
 ---
 
