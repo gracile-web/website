@@ -1,16 +1,18 @@
 # Markdown
 
-Import markdown file directly in HTML templates with your own processing
-pipeline.  
-Extracts the table of content, frontmatter, excerpt and title.
+Import markdown files directly in HTML templates with your custom processing pipeline or presets.  
+Extracts the table of contents, frontmatter, excerpt and title.
 
 > [!WARNING]
-> This section is under construction.
+> This API is subject to changes
 
 ## Installation
 
 ```sh
 npm i @gracile/markdown
+
+# Presets
+npm i @gracile/markdown-preset-marked
 ```
 
 ```ts twoslash
@@ -18,14 +20,15 @@ npm i @gracile/markdown
 
 import { defineConfig } from '@gracile/gracile';
 
-import { viteMarkdownPlugin } from '@gracile/markdown/addon'; // [!code highlight]
+import { viteMarkdownPlugin } from '@gracile/markdown/vite'; // [!code highlight:2]
+import { MarkdownRenderer } from '@gracile/markdown-preset-marked';
 
 export default defineConfig({
   // ...
 
   vite: {
     plugins: [
-      viteMarkdownPlugin(),
+      viteMarkdownPlugin({ MarkdownRenderer }), // [!code highlight]
       // ...
     ],
   },
@@ -39,40 +42,105 @@ export default defineConfig({
 
 import { html } from 'lit';
 
-import * as myDocument from './my-document.md' with { type: 'md-lit' };
+import myDocument from './my-document.md' with { type: 'md-lit' };
 
 export const myPartial = html`
   <article>
-    <h1>${myDocument.title}</h1>
-    <div class="content">${myDocument.content}</div>
+    <h1>${myDocument.meta.title}</h1>
+    <div class="content">${myDocument.body.lit}</div>
   </article>
 
   <details>
-    <div>${myDocument.excerpt}</div>
-    <pre>${JSON.stringify(myDocument.toc)}</pre>
-    <pre>${JSON.stringify(myDocument.frontmatter)}</pre>
+    <div>${myDocument.excerpt.lit}</div>
+    <pre>${JSON.stringify(myDocument.meta.tableOfContents)}</pre>
+    <pre>${JSON.stringify(myDocument.meta.frontmatter)}</pre>
+
+    <pre>${JSON.stringify(myDocument.source.yaml)}</pre>
+    <pre>${JSON.stringify(myDocument.path.relative)}</pre>
   </details>
 `;
+
+// @filename: /src/types.ts
+
+// TIP: You can use these types to flesh out yours. Hover to see the full signatures.
+import type {
+  MarkdownModule,
+  TocLevel,
+  Heading,
+} from '@gracile/markdown/module';
+
+// ...
 ```
-
-### Bringing your processing pipeline
-
-> [!WARNING]
-> This section is under construction.
-
-The API will be designed to allow your Markdown pipeline to be used
-by the **bundler** (Markdown "modules") and/or within your app-runtime, for
-dynamic server transformation.
 
 ### With Vite's glob import.
 
 ```ts twoslash
-import type { MarkdownModule } from '@gracile/markdown/md-module';
+// @filename: /src/document.ts
+import { html } from '@gracile/gracile/server-html';
+export const document = (options: { url: URL; title?: string }) => html`...`;
+//---cut---
+// @filename: /src/content/content.ts
 
-const docsImportsGlob = import.meta.glob('/src/content/docs/**/*.md', {
-  eager: true,
+// NOTE: Firstly, create the holder for your Markdown documents
+
+import type { MarkdownModule } from '@gracile/markdown/module';
+
+export const blogPosts = import.meta.glob<MarkdownModule>(
+  '/src/content/blog/**/*.md',
+  { eager: true, import: 'default' },
+);
+
+// @filename: /src/routes/blog/[slug].ts
+
+// NOTE: Secondly, consume them in a dynamic route
+
+import { defineRoute } from '@gracile/gracile/route';
+import { html } from 'lit';
+
+import { blogPosts } from '../../content/content.js';
+import { document } from '../../document.js';
+
+export default defineRoute({
+  staticPaths: () =>
+    Object.values(blogPosts).map((module) => ({
+      params: { slug: module.meta.slug },
+      props: {
+        title: module.meta.title,
+        content: module.body.lit,
+        toc: module.meta.tableOfContents,
+      },
+    })),
+
+  document: (context) => document({ ...context, title: context.props.title }),
+
+  template: (context) => html`
+    <pre>${JSON.stringify(context.props, null, 2)}</pre>
+    ...
+  `,
 });
 ```
+
+## Build your preset
+
+The `MarkdownRenderer` class is used to produce a ready-to-consume, standardized `MarkdownModule`.
+
+[See the "_Marked_" preset](https://github.com/gracile-web/gracile/blob/main/packages/addons/markdown-preset-marked) for a simple implementation of the `MarkdownRenderer` abstract class. It's under 100 lines of code!  
+Also, it uses very few, light dependencies for achieving all tasks, like transforming the MD, extracting the ToC, and other metadata.
+
+Contrary to _Marked_, _remark_ is extremely flexible and modular. In fact, the website you are visiting is making extensive use of the _unified_ ecosystem.
+This versatility is cool, but that also means you have to install quite a lot of dependencies.
+
+As everyone has different needs, it's up to you to plug your custom pipeline; Gracile may offer a basic preset with `remark` at some point, which could be expanded or overridden.
+
+You don't have to implement everything if you don't need it, also. For example,
+you might just want the actual markdown `body`, but no `meta.frontmatter`, `excerpt`…  
+The class methods will just return empty strings/objects if something isn't there.
+
+<!-- ### Bringing your processing pipeline -->
+
+<!-- The API will be designed to allow your Markdown pipeline to be used
+by the **bundler** (Markdown "modules") and/or within your app-runtime, for
+dynamic server transformation. -->
 
 ## Server-side rendering
 
@@ -154,7 +222,7 @@ This code is rendered _as-is_ in unaware previewers.
 
 Better, but nothing is rendered without spinning
 up a full JS runtime + processor. Plus it will not render the same with
-different interpreters (to be fair, Web Component is the case, too).  
+different interpreters (to be fair, with Web Component it's the case, too).  
 And what if you have a syntax error? Nothing will be shown at all.  
 The parser or runtime will crash. Blank screen of death.  
 On the other hand, HTML and Markdown are error-prone. There is no such
@@ -163,7 +231,7 @@ The browser is here to save us by gobbling up malformed HTML.
 MDX is predominantly Markdown for React/JSX devs, not for everyone.
 
 I believe it's better to have a bit of incorrect content rather
-than no content at all! We are not launching space ships, we just want
+than no content at all! We are not launching spaceships, we just want
 to communicate knowledge to humans effectively,
 even if it's a tad quirky sometimes.
 
@@ -208,6 +276,7 @@ Now with pure **HTML in Markdown**:
 ```
 
 Pretty syntax highlight AND formatting 😃!  
+Also, a lot of IDE already has awesome support for "basic" CommonMark + GitHub Flavored Markdown.  
 Yes, you will not have the smart, interactive component in "dumb" Markdown
 previewers, but at least, you can build on top of REAL content that will
 gracefully fall back and be displayed, like this basic `slot` example above.

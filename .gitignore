@@ -36,3 +36,5 @@ public/pagefind
 .old*
 .dev*
 .disabled*
+
+linkinator-result.json

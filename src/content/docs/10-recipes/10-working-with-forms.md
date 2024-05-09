@@ -5,17 +5,14 @@ Server-only handling, no JS needed.
 
 ```ts twoslash
 // @filename: /src/document.ts
-
-import { html } from '@lit-labs/ssr';
-
-export const defaultDocument = (options: { url: URL }) => html` ... `;
-
+import { html } from '@gracile/gracile/server-html';
+export const document = () => html` ... `;
 // ---cut---
 // @filename: /src/routes/form.ts
 
 import { html } from 'lit';
-import { defineRoute } from '@gracile/server/route';
-import { defaultDocument } from '../document.js';
+import { defineRoute } from '@gracile/gracile/route';
+import { document } from '../document.js';
 
 // -----------------------------------------------------------------------------
 
@@ -74,14 +71,16 @@ export default defineRoute({
               .get(FORM.fields.coolnessFactor)
               ?.toString();
 
-            if (name && name.length >= 3 && coolnessFactor) {
+            // NOTE: Basic form data shape validation.
+            if (name && coolnessFactor && name.length >= 3) {
               achievementsDb.push({
                 name,
                 coolnessFactor: Number(coolnessFactor),
               });
             } else {
               context.response.status = 400;
-              context.response.statusText = 'Wrong input. Name too short.';
+              context.response.statusText = 'Wrong form input.';
+              // IMPORTANT: We want the user data to be repopulated in the page after a failed `POST`.
               return {
                 success: false,
                 message: context.response.statusText,
@@ -106,14 +105,14 @@ export default defineRoute({
           } as const;
       }
 
-      // TIP: Using the "POST/Redirect/GET" pattern to avoid duplicate submissions
+      // TIP: Using the "POST/Redirect/GET" pattern to avoid duplicate form submissions
       return Response.redirect(context.url, 303);
     },
   },
 
-  document: (context) => defaultDocument(context),
+  document: (context) => document(context),
 
-  page: (context) => html`
+  template: (context) => html`
     <h1>Achievements manager</h1>
 
     <form method="post">
@@ -185,7 +184,6 @@ export default defineRoute({
     <hr />
 
     <footer>
-      <code>${context.request.method}</code>
       <pre>${JSON.stringify({ props: context.props }, null, 2)}</pre>
     </footer>
   `,

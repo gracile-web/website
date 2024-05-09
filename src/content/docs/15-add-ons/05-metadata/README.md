@@ -1,7 +1,6 @@
 # Page metadata (head)
 
-Quickly add a description, title,
-open graph, etc. in your page's document head.  
+Quickly add a description, title, open graph, etc. in your page's document head.  
 This add-on will take care of the nitty-gritty.
 
 > [!WARNING]
@@ -18,11 +17,11 @@ npm i @gracile/metadata
 ```ts twoslash
 // @filename: /src/document.ts
 
-import { html } from '@lit-labs/ssr';
-import { helpers } from '@gracile/server/document';
+import { html } from '@gracile/gracile/server-html';
+import { helpers } from '@gracile/gracile/document';
 import { createMetadata } from '@gracile/metadata';
 
-export const defaultDocument = (options: { url: URL; title?: string }) => html`
+export const document = (options: { url: URL; title?: string }) => html`
   <!doctype html>
   <html lang="en">
     <head>
@@ -36,7 +35,7 @@ export const defaultDocument = (options: { url: URL; title?: string }) => html`
     </head>
 
     <body>
-      <page-outlet></page-outlet>
+      <route-template-outlet></route-template-outlet>
     </body>
   </html>
 `;

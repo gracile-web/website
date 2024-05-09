@@ -1,6 +1,6 @@
 # SVG
 
-Import and auto-optimize SVG files directly inside your HTML templates.
+Import, auto-optimize, and inline SVG files in your HTML templates.
 
 > [!WARNING]
 > This section is under construction.
@@ -16,7 +16,7 @@ npm i @gracile/svg
 
 import { defineConfig } from '@gracile/gracile';
 
-import { viteSvgPlugin } from '@gracile/svg/addon'; // [!code highlight]
+import { viteSvgPlugin } from '@gracile/svg/vite'; // [!code highlight]
 
 export default defineConfig({
   // ...

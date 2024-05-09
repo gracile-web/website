@@ -5,23 +5,26 @@ SSG is technically ahead of time SSR.
 Server is fully dynamic, it fits within your existing setup, consuming
 the Gracile outputted handler.
 
-# SPA
+> [!WARNING]
+> This section is under construction.
+
+## SPA
 
 Just put one route and implement your own client side router.  
 It's not a "mode" per se.
 
-# MPA
+## MPA
 
 Every page will get it's own assets splitting.
 Can be paired with your own client side router too.
 It's not a "mode" per se.
 
-# Static mode (SSG)
+## Static mode (SSG)
 
 With SSG you get access to more context infos like `props` and `params`.  
 Also, you will need to populate `staticPaths` for dynamic routes.
 
-# Server mode (soon)
+## Server mode (soon)
 
 A handler is provided to do upfront work before rendering the page.
 
@@ -30,21 +33,30 @@ A handler is provided to do upfront work before rendering the page.
 > but after experimentation, a built output will be available to integrate
 > into any `Request` / `Response` compliant HTTP server (or with an adapter).
 
-## Pre-rendering
+### Supported deployment environments
+
+Please kindly note that for now, Lit SSR is officially supported on **Node.js**
+APIs compatible runtimes, as well as "serverless" **Vercel** functions.  
+There is ongoing work for official support across more environments, like
+**WinterCG**-compatible runtimes (Deno, Netlify, Cloudflare, Alibaba…) and
+possibly more (Bun, Service Workers…).
+
+### Pre-rendering
 
 Probably Gracile will not support pre-rendering like Nuxt or Astro does.  
 This is because "Stale-While-Revalidate" and "Content Cache" policies became widespread.  
-You can serve cached page very efficiently with Vercel, Netlify, CloudFlare or
+You can serve cached pages very efficiently with Vercel, Netlify, CloudFlare or
 Nginx.
 
-Remix or Fresh are doing this approach sucessfully, so unless a good reason
+Remix or Fresh are doing this approach successfully, so unless a good reason
 is found for this feature, there should be no need for that.
 
-Also combining [prefetch on hover/focus](/docs/add-ons/prefetch/) on links
-can pre-trigger the necessary work and "revive" expired cache before the user get
-access to the content, if it's quick enough. You could probably shave ~300ms with this.
+Also combining [prefetch on hover/focus](/docs/site-kit/prefetch/) on links can
+pre-trigger the necessary work and "revive" expired cache before the user gets
+access to the content; if it's quick enough. You could probably shave ~300ms
+with this.
 
-### Nginx web server
+#### Nginx web server
 
 [Use `proxy_cache_background_update` with **Nginx**](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_background_update)
 
@@ -57,9 +69,12 @@ proxy_cache_lock on;
 proxy_cache_background_update on;
 ```
 
-This is an example snippet. You should customize it further, like targeting mostly static routes, where data freshness is not critical (e.g. not on multi-page forms).
+This is an example snippet. You should customize it further, like targeting
+mostly static routes, where data freshness is not critical (i.e., not on
+multi-page forms). And don't forget that response headers may be used too,
+for granular and dynamic control.
 
-### "Serverless" platforms
+#### "Serverless" platforms
 
 - [**Cloudflare** Cache Control revalidation](https://developers.cloudflare.com/cache/concepts/cache-control/#revalidation)
 - [**Netlify**'s SWR](https://www.netlify.com/blog/swr-and-fine-grained-cache-control/)

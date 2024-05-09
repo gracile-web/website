@@ -1,43 +1,69 @@
 # Defining routes
 
-Like every meta-framework, routes are the central concept of Gracile.  
+Like every full-stack meta-framework, routes are the central concept of Gracile.  
 This is where everything got tied together, and besides that, and add-ons, there aren't many opinions left.
 
 Gracile comes with a dedicated function that will take care of
 typings as with JS or TS, and nothing more.
 
-Under the hood, it uses the [`URLPattern` API](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) which is using converted patterns like that:
+Under the hood, it uses the [`URLPattern` API](https://developer.mozilla.org/en-US/docs/Web/API/URLPattern) which uses converted patterns like this:
 
-- `/src/routes/foo/[param]/foo.ts` => `/foo/:param/foo`
-- `/src/routes/bar/[...path]` => `/bar/:path*`
+- `/src/routes/foo/[param]/foo.ts` → `/foo/:param/foo`
+- `/src/routes/bar/[...path]` → `/bar/:path*`
+
+### Index
+
+You have **two** ways to define an index for a folder.
+
+1. Using like: `foo/my-folder/index.ts`
+2. With parentheses like: `foo/(anything).ts`, `foo/(foo).ts`…
+
+---
+
+Respectively:
+
+1. `/src/routes/foo/index.ts` → `/foo/`
+2. `/src/routes/foo/(foo).ts` → `/foo/`
+
+The parentheses pattern is especially useful for quick file switching with your IDE, where a lot of `index`es can be confusing, same when debugging an error trace.  
+Note that when indexes are noted that way, the first one will be chosen (alphabetically).
 
 ## Ignored files and directories
 
-- **Client**-side sibling **scripts** (`*.client.{js,ts}`)
+- **Client**-side sibling **scripts** (`<ROUTE>.client.{js,ts}`)
+- **Client**-side sibling **styles** (`<ROUTE>.{css,scss,…}`)
 - Leading **underscore** `_*.{js,ts}`, `_my-dir/*`
-- Leading **dotfiles**/directories (hidden).
+- Leading **dotfiles**/directories (hidden on OS).
 
 ## `defineRoute` parameters
 
+<!-- is a "dummy" function in the sense that it doesn't do anything to your configuration at runtime, but it -->
+
+The `defineRoute`
+provides a type-safe API that can be used with JavaScript or TypeScript.  
+It's analog to how numerous OSS projects are providing their configuration API (like Vite's `defineConfig`).
+
+<!-- You could export like `export default { document: ..., page: ... }` and it would work, but you'll lose type-safety. -->
+
 ### `document`
 
-Provides the [base document](/docs/learn/usage/defining-base-document/) for the route's page.  
-Given:
+Provides the [base document](/docs/learn/usage/defining-base-document/) for the route's page template.  
+Given a pre-existing document, you'll import it like this in your route configuration:
 
 ```ts twoslash
 // @filename: /src/document.ts
 
-import { html } from '@lit-labs/ssr';
+import { html } from '@gracile/gracile/server-html';
 
-// [!code word:defaultDocument:1]
-export const defaultDocument = (options: { url: URL }) => html`
+// [!code word:document:1]
+export const document = (options: { url: URL }) => html`
   <html>
     <head>
       <!-- ... -->
       <title>${url.pathname}</title>
     </head>
     <body>
-      <page-outlet></page-outlet>
+      <route-template-outlet></route-template-outlet>
     </body>
   </html>
 `;
@@ -45,29 +71,31 @@ export const defaultDocument = (options: { url: URL }) => html`
 // @filename: /src/routes/my-page.ts
 
 import { html } from 'lit';
-import { defineRoute } from '@gracile/server/route';
-import { defaultDocument } from '../document.js'; // [!code highlight]
+import { defineRoute } from '@gracile/gracile/route';
+import { document } from '../document.js'; // [!code highlight]
 
 export default defineRoute({
-  document: defaultDocument, // [!code highlight]
+  document: (context) => document(context), // [!code highlight]
 
-  page: () => html`...`,
+  template: () => html`...`,
 });
 ```
 
-### `page`
+### `template`
 
-Provides page template.
+Provides a server-renderable template.  
+When **combined** with an enclosing `document`, we'll call it a "**Page**".  
+When used **alone**, we'll call it an HTML "**Fragment**".
 
 ```ts twoslash
 // @filename: /src/routes/my-page.ts
 
 import { html } from 'lit';
-import { defineRoute } from '@gracile/server/route';
+import { defineRoute } from '@gracile/gracile/route';
 
 export default defineRoute({
   // ...
-  page: (context) => html`
+  template: (context) => html`
     <main>
       <article class="prose">Hello</article>
     </main>
@@ -81,25 +109,24 @@ Used with [**static** mode](/docs/learn/usage/output-modes/#doc_static-ssg) only
 
 You can provide `props` and `params` for populating page data.
 
-**Page** and **document** contexts will be properly typed with your function return signature.
+**`template`** and **`document`** contexts will be properly typed thanks to the `staticPaths` function return signature.  
+Hover `context.props` and `context.params` to see!
 
 ```ts twoslash
 // @filename: /src/document.ts
-import { html } from '@lit-labs/ssr';
+import { html } from '@gracile/gracile/server-html';
 
-export const defaultDocument = (options: { url: URL }) => html`...`;
+export const document = (options: { url: URL }) => html`...`;
 
 //---cut---
 // @filename: /src/routes/[...path].ts
 
 import { html } from 'lit';
-import { defineRoute } from '@gracile/server/route';
+import { defineRoute } from '@gracile/gracile/route';
 
-import { defaultDocument } from '../document.js';
+import { document } from '../document.js';
 
 export default defineRoute({
-  document: (context) => defaultDocument(context),
-
   staticPaths: () =>
     [
       {
@@ -112,10 +139,12 @@ export default defineRoute({
       },
     ] as const,
 
+  document: (context) => document({ ...context, title: context.props.cat }),
+
   // NOTE: Hover the tokens to see the typings reflection.
-  page: async (context) => html`
+  template: async (context) => html`
     <h1>${context.props.cat}</h1>
-    <main>${url.pathname}</main>
+    <main>${context.url.pathname}</main>
     <footer>${context.params.path}</footer>
   `,
 });
@@ -123,29 +152,30 @@ export default defineRoute({
 
 ### `handler` (experimental)
 
-Used with [**server** mode](/docs/learn/usage/output-modes/#doc_server-soon) only.
+Used with [**server** mode](/docs/learn/usage/output-modes/#doc_server-soon) only.  
+Like `staticPaths`, `handler` is a provider for `props` and can receive the current — matched route — `params`.
 
-There are **two behavior** for the handlers:
+There are **two behaviors** for the handlers:
 
-**Returning an instance of `Response`** will terminate the pipeline, without going through
-the page rendering that happens afterward otherwise.  
-Useful for redirects, pure JSON API routes…
+1. **Returning an instance of `Response`** will **terminate** the pipeline, without going through
+   the `template` rendering that happens afterward otherwise.  
+   Useful for redirects, pure JSON API routes…
 
-**Returning anything else** will provide the typed `props` for the page to consume.
+2. **Returning anything else** will provide the typed `props` for the `template` to consume.
 
-See also the ["Forms" recipe](http://localhost:9898/docs/recipes/working-with-forms/).
+Minimal example:
 
 ```ts twoslash
 // @filename: /src/document.ts
-import { html } from '@lit-labs/ssr';
-export const defaultDocument = () => html`...`;
+import { html } from '@gracile/gracile/server-html';
+export const document = () => html`...`;
 // ---cut---
 
 // @filename: /src/routes/index.ts
 
 import { html } from 'lit';
-import { defineRoute, jsonResponse } from '@gracile/server/route';
-import { defaultDocument } from '../document.js';
+import { defineRoute } from '@gracile/gracile/route';
+import { document } from '../document.js';
 
 const achievements = [{ name: 'initial' }];
 
@@ -156,99 +186,58 @@ export default defineRoute({
     POST: async (context) => {
       const formData = await context.request.formData();
 
-      const name = formData.get('achievement')?.toString());
+      const name = formData.get('achievement')?.toString();
 
       if (name) achievements.push({ name });
 
       return Response.redirect(context.url, 303);
     },
-
-    // [!code word:DELETE:2]
-    // [!code word:jsonResponse:2]
-    DELETE: () => {
-      // NOTE: This is a short-hand for making a new Reponse(...) with appropriate options.
-      return jsonResponse({ theEntireDatabase: true });
-    },
   },
 
-  document: defaultDocument,
+  document: (context) => document(context),
 
-  page: async (context) => html`
+  template: async (context) => html`
     <form method="post">
       <input type="text" name="achievement" />
-      <button>Add achievement</button>
+      <button>Add an "Achievement"</button>
     </form>
 
-    ${context.request.method}
-
     <ul>
-      ${achievements.map((a) => html`<li>${a.name}</li>`)}
+      ${achievements.map((achievement) => html`<li>${achievement.name}</li>`)}
     </ul>
-
-    <script type="module">
-      const result = await fetch('/', { method: 'DELETE' }).then((r) =>
-        r.json(),
-      );
-      console.log(result);
-    </script>
   `,
 });
 ```
 
-## Per-route assets
+---
 
-As seen in the example above, each tag will be an entry point for bundles.  
-Want to split? Add a tag. Want to group and optimize multiple modules together?
-Just import them from a unique entry point, Rollup will do the rest.
+See also the ["Forms" recipe](/docs/recipes/working-with-forms/) for a full, contextualized example.
 
-```html
-<link rel="stylesheet" href="/src/routes/my-page.scss" />
-<script type="module" src="/src/routes/my-page.client.ts"></script>
-```
+### HTTP methods
 
-If you're concerned about module script locations, which will happen right after the opening `<body>` of the containing document, note that after build, Rollup
-will put them at the "proper" place before the closing `</body>`.  
-Inline scripts, styles and CSS links will be left in place.
-
-> [!IMPORTANT]  
-> While it is strongly recommended to use `.js` even for TS, and **relative** paths,
-> not absolute,
-> these rules **won't apply in HTML** when using Vite / Rollup based
-> systems.
-> You have to provide the **full real path** relative to the project root, like
-> `/src/components/my-element.ts`.  
-> Same for non-vanilla CSS.
-
-<!-- TODO: Separate "Assets section" -->
-<!-- TODO: Explanation for "as-is" assets, e.g.: -->
-<!-- await import(
-  /* @vite-ignore */
-  new URL('../../pagefind/pagefind-ui.js', import.meta.url).href
-); -->
+Note that, per the HTML specs, only `GET` and `POST` can be used with an HTML `<form>` element.  
+Other methods like `DELETE`, `PUT`, etc. can be used, but Gracile won't pursue the route template rendering with them.  
+A new method, "[`QUERY`](https://httpwg.org/http-extensions/draft-ietf-httpbis-safe-method-w-body.html)", is also inside the radar, and will possibly be implemented in `node:http` and other server environments.
 
 ### Minimal example
 
 ```ts twoslash
 // @filename: /src/document.ts
-import { html } from '@lit-labs/ssr';
+import { html } from '@gracile/gracile/server-html';
 
-export const defaultDocument = (options: { url: URL; title: string }) => html``;
+export const document = (options: { url: URL; title: string }) => html``;
 
 // ---cut---
 // @filename: /src/routes/my-page.ts
 
 import { html } from 'lit';
-import { defineRoute } from '@gracile/server/route';
-import { defaultDocument } from '../document.js';
+import { defineRoute } from '@gracile/gracile/route';
+import { document } from '../document.js';
 
 export default defineRoute({
-  document: (context) => defaultDocument({ ...context, title: 'My Page' }),
+  document: (context) => document({ ...context, title: 'My Page' }),
 
-  page: ({ url }) => html`
-    <!-- CAUTION: Use the full real path (relative to the project root) -->
-    <link rel="stylesheet" href="/src/routes/my-page.scss" />
-    <script type="module" src="/src/routes/my-page.client.ts"></script>
-
+  template: ({ url }) => html`
     <main class="content">
       <article class="prose">
         <!-- ... -->
@@ -256,6 +245,72 @@ export default defineRoute({
         <!-- ... -->
       </article>
     </main>
+  `,
+});
+```
+
+## Bare pages (for redirects, etc.)
+
+Sometimes, you don't want to bring a page template in a route, just a bare HTML document, maybe with some `<meta>`; perfect use-case: page redirects.
+
+It's totally possible to skip the `template` altogether and just use a single `document`.
+
+Here, we will redirect the user to another URL, while collecting some analytics,
+all that with a nice and simple transitive screen:
+
+```ts twoslash
+// @filename: /src/routes/chat.ts
+
+import { defineRoute } from '@gracile/gracile/route';
+import { html } from '@gracile/gracile/server-html';
+
+import discordLogo from '../assets/icons/discord.svg' with { type: 'svg-lit' };
+import { DISCORD_INVITE_URL } from '../content/global.js';
+import { googleAnalytics } from '../document-helpers.js';
+
+const waitTime = 2;
+
+export default defineRoute({
+  document: () => html`
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        ${googleAnalytics}
+
+        <style>
+          & {
+            margin: calc(10dvh + 10dvw);
+            font-family: system-ui;
+            font-size: 2rem;
+            text-align: center;
+            color-scheme: dark light;
+          }
+
+          svg {
+            height: 3rem;
+            width: 3rem;
+          }
+        </style>
+
+        <title>Gracile - Discord Server (redirecting…)</title>
+
+        <!-- NOTE: The current page, "https://gracile.js.org/chat/", will be forgotten from history after the redirection.  -->
+        <meta
+          http-equiv="refresh"
+          content=${`${waitTime};URL=${DISCORD_INVITE_URL}`}
+        />
+      </head>
+
+      <body>
+        ${discordLogo}
+
+        <p>Redirecting to the Discord invitation link…</p>
+        <!-- NOTE: No need for the <route-template-outlet> here! -->
+      </body>
+    </html>
   `,
 });
 ```
@@ -289,4 +344,91 @@ Fortunately, there are plenty of options regarding CSR in the Lit ecosystem:
 
 - [Lit's router](https://www.npmjs.com/package/@lit-labs/router)
 - [Nano Stores Router](https://github.com/nanostores/router) with [Nano Store Lit](https://github.com/nanostores/lit)
+- [Navigo](https://github.com/krasimir/navigo)
 - [thepassle's app-tools](https://github.com/thepassle/app-tools/tree/master/router) router
+- [Vaadin router](https://github.com/vaadin/router)
+
+You might want to try DOM-diffing libraries, too.
+
+## Miscellaneous
+
+### Trailing slashes
+
+For simplicity and predictability, Gracile is only supporting routes that ends with a slash.  
+This is for **pages** and **server endpoints**. Flexibility will be added for the latter.
+
+> [!NOTE]
+> The explanation below is extracted from the [Rocket web framework documentation](https://rocket.modern-web.dev/docs/basics/routing/#static-routes).
+
+Below is a summary of investigations by [Zach Leatherman](https://www.zachleat.com/web/trailing-slash/) and [Sebastien Lorber](https://github.com/slorber/trailing-slash-guide)
+
+**Legend**:
+
+- 🆘 HTTP 404 Error
+- 💔 Potentially Broken Assets (e.g., `<img src="image.avif">`)
+- 🟡 SEO Warning: Multiple endpoints for the same content
+- ✅ Correct, canonical or redirects to canonical
+- ➡️ Redirects to canonical
+
+<table class="fullwidth">
+  <thead>
+    <tr>
+      <th></th>
+      <th colspan="2"><code>about.html</code></th>
+      <th colspan="2"><code>about/index.html</code></th>
+    </tr>
+    <tr>
+      <th>Host</th>
+      <th><code>/about</code></th>
+      <th><code>/about/</code></th>
+      <th><code>/about</code></th>
+      <th><code>/about/</code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://slorber.github.io/trailing-slash-guide">GitHub Pages</a></td>
+      <td>✅</td>
+      <td>🆘 <code>404</code></td>
+      <td>➡️ <code>/about/</code></td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><a href="https://trailing-slash-guide-default.netlify.app">Netlify</a></td>
+      <td>✅</td>
+      <td>➡️ <code>/about</code></td>
+      <td>➡️ <code>/about/</code></td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><a href="https://vercel-default-eight.vercel.app">Vercel</a></td>
+      <td>🆘 <code>404</code></td>
+      <td>🆘 <code>404</code></td>
+      <td>🟡💔</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><a href="https://trailing-slash-guide.pages.dev">Cloudflare Pages</a></td>
+      <td>✅</td>
+      <td>➡️ <code>/about</code></td>
+      <td>➡️ <code>/about/</code></td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><a href="https://trailing-slash-guide.onrender.com">Render</a></td>
+      <td>✅</td>
+      <td>🟡💔</td>
+      <td>🟡💔</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td><a href="https://polite-bay-08a23e210.azurestaticapps.net">Azure Static Web Apps</a></td>
+      <td>✅</td>
+      <td>🆘 <code>404</code></td>
+      <td>🟡💔</td>
+      <td>✅</td>
+    </tr>
+  </tbody>
+</table>
+
+If you wanna know more be sure to checkout [Trailing Slashes on URLs: Contentious or Settled?](https://www.zachleat.com/web/trailing-slash/).

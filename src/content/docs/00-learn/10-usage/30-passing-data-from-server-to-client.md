@@ -1,44 +1,116 @@
 # Passing data from server to client
 
-## Lit Custom Element example
+When you output Web Components from the server, with or without the declarative shadow DOM pre-render, it's often desirable to initialize them with server-generated, complex data.
+
+Instead of reinventing the wheel, Gracile is just providing you the guidelines on how to achieve that, well… gracefully 😌.
+
+Note that this isn't even a JS framework thing. The patterns described below are transposable for any HTML-outputting backends.
+
+Typically you'll find two philosophies:
+
+1. Put the hydrating data in a `<script type="application/json">{...}</script>`, and from there the client-side framework will pick that up to hydrate the component tree by reconciling it with data.  
+   **Examples**: Nuxt, Next, Gatsby…
+2. Put the hydrating data in a child element attribute, typically called an "Island".  
+   **Examples**: Astro, Fresh,…
+
+With Lit SSR you can use both methods, though. The first one is [described here](https://github.com/lit/lit/tree/main/packages/labs/ssr#server-only-templates).  
+In this mini-guide, we'll focus on the "Island-ey" pattern, for now.
+
+## Custom Element examples
+
+<!-- TODO: update assets entrypoints pattern (put in sibling client) -->
 
 ```ts twoslash
-// @filename: /src/my-partial.ts
+// @filename: /src/features/my-partial.ts
 
 import { html } from 'lit';
-import type { MyElement } from './my-element.ts';
 
-const data = { foo: 'bar' } satisfies MyElement['initialData'];
+// NOTE: Will handle server rendering just fine as well!
+import './my-lit-element.js';
+import type { InitialData } from './my-lit-element.js';
+
+export type InitialData = { foo?: string; baz?: null | number };
+
+const data = { foo: 'bar', baz: 2 } satisfies InitialData;
 
 export const myServerRenderedPartial = html`
   <!-- ... -->
   <section>
-    <my-element initialData=${JSON.stringify(data)}></my-element>
+    <my-lit-element initialData=${JSON.stringify(data)}></my-lit-element>
+  </section>
+  <section>
+    <my-bare-element data-initial=${JSON.stringify(data)}></my-bare-element>
   </section>
   <!-- ... -->
 `;
 
-// @filename: /src/my-element.ts
+// @filename: /src/features/my-partial.client.ts
 
-import { LitElement, css, html } from 'lit';
+import './my-lit-element.ts';
+import './my-bare-element.ts';
+
+// @filename: /src/features/my-lit-element.ts
+
+import { LitElement, html } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-@customElement('my-element')
-export class MyElement extends LitElement {
+import type { InitialData } from './my-partial.ts';
+
+@customElement('my-lit-element')
+export class MyLitElement extends LitElement {
   @property({ type: Object })
-  initialData: {
-    foo?: string;
-  } = {};
+  initialData: InitialData | string = {};
 
   render() {
-    console.log({ initial: this.initialData });
+    if (typeof this.initialData !== 'object') return html`Invalid data`;
+
     return html`
       <!-- -->
       <div>${this.initialData.foo}</div>
+      <div>${this.initialData.baz || 'Oh no'}</div>
     `;
   }
 }
+
+// @filename: /src/features/my-bare-element.js
+
+import type { InitialData } from './my-partial.ts';
+
+class MyBareElement extends HTMLElement {
+  #initialData?: InitialData;
+
+  connectedCallback() {
+    this.attachShadow({ mode: 'open' });
+    const attrData = this.dataset.initial;
+    if (attrData) this.#initialData = JSON.parse(attrData);
+
+    this.shadowRoot!.innerHTML = `
+        <div>${this.#initialData?.foo || 'Not defined!'}</div>
+        <div>${this.#initialData?.baz || 'Not defined!'}</div>
+      `;
+  }
+}
+customElements.define('my-bare-element', MyBareElement);
 ```
+
+Another big win by leveraging Web Component intrinsic versatility!  
+No need to bring superfluous JS kilobytes to do this hard work, it's already
+embedded in your browser.
+
+Please note that these examples could be improved, notably for:
+
+```js
+initialData: InitialData | string = {};
+```
+
+`string` is just for the [`ts-lit-plugin`](/docs/developer-experience/#doc_lit-analyzer) to be appeased inside the `html` template.  
+Also, `initialData` and `initialdata` are equivalent, but hyphenated properties are rejected by the linter.
+
+Maybe a bit more elegant solutions could be achieved, but those a more convention/typing issues, not runtime ones.
+
+<!-- > [!NOTE]
+> It's possible to achieve the same thing with bare web components, too.
+> You'll  -->
 
 ## Advanced serialization / deserialization
 
@@ -51,25 +123,24 @@ This is a fully working example:
 
 ```ts twoslash
 // @filename: /src/document.ts
-import { html } from '@lit-labs/ssr';
+import { html } from '@gracile/gracile/server-html';
 
-export const defaultDocument = (options: { url: URL }) => html`...`;
+export const document = (options: { url: URL }) => html`...`;
 //---cut---
 
 // @filename: /src/routes/serialization.ts
 
+import { defineRoute } from '@gracile/gracile/route';
 import { html } from 'lit';
-import { defineRoute } from '@gracile/server/route';
-import { defaultDocument } from '../document.js';
 import { serialize } from 'seroval';
+
+import { document } from '../document.js';
 import { complexData } from './_serialization-demo-data.js';
 
 export default defineRoute({
-  document: defaultDocument,
+  document: (context) => document(context),
 
-  page: () => html`
-    <script type="module" src="/src/routes/serialization.client.ts"></script>
-
+  template: () => html`
     <serialization-example
       myComplexData=${serialize(complexData)}
     ></serialization-example>
@@ -125,8 +196,7 @@ export class SerializationExample extends LitElement {
         value ? deserialize<MyData>(value) : undefined,
     },
   })
-
-  // NOTE: `string` is used to prevent a type error in the template. Maybe a more elegant solution can be achieved.
+  // NOTE: Reminder that `string` is used to prevent a type error in the template.
   myComplexData?: MyData | string;
 
   render() {
@@ -151,3 +221,9 @@ export class SerializationExample extends LitElement {
   }
 }
 ```
+
+## Refreshing data without a full page reload
+
+For that, just set up a [JSON handler](/docs/learn/usage/defining-routes/#doc_handler-experimental) in your route.
+Then, connect this pipe to your Web Components properties and interactions.  
+Could be bidirectional, too (`GET`/`POST` → `Response`).

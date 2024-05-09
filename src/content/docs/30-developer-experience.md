@@ -21,6 +21,7 @@ of tools that will bring:
 - HTML **linting**.
 - Accessibility hints.
 - Syntaxes highlightings
+- Emmet for CSS/HTML
 - And much more…
 
 It's available as both a **VSCode** plugin OR a **TypeScript** plugin that will work
@@ -49,7 +50,7 @@ authoring experience, so you might be urged to test it yourself in your local en
 ### Browser dev'tools comfort
 
 When working with Lit templates, you'll find a lot of "marker" comments in the
-produced output, e.g. ` <!--lit-part prGdWBNEVq4=-->`.
+produced output, e.g., ` <!--lit-part prGdWBNEVq4=-->`.
 
 It is used notably for hydration and Lit's template client rendering system.
 
@@ -58,7 +59,7 @@ it's possible to unclutter your browser view while developing.
 For that, you can uncheck <samp>Settings > Preferences > Elements > Show HTML comments</samp> in Chromium-like developer tools.
 
 It's pretty nice to cut the noise like this if you want, especially when
-you compare with other markers mechanisms (e.g. CSS scoping…), where
+you compare with other markers mechanisms (e.g., CSS scoping…), where
 those random strings belong IN your effective markup, not comments.
 
 Be aware that you SHOULD NOT minify and remove comments while building.

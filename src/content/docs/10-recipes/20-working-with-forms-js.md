@@ -1,15 +1,15 @@
 # Working with forms (JS augmented)
 
-This is a full example of how to handle forms in Gracile, with client-side JavaScript augmentation.
+This is a full example of how to handle forms in Gracile, with client-side JavaScript augmentation.  
+In this recipe, both approaches will work, so the user can start submitting the form even if the JS has yet to be parsed! And if it is, that will avoid a full-page reload by using the JSON API with `fetch`.
 
-Both methods will work, so the user can start submitting the form even if
-JavaScript isn't parsed yet! And if it is, that will avoid a full-page reload.
+If you haven't done it yet, you should read the [form recipe without JS](/docs/recipes/working-with-forms/) before diving into the progressive enhancement below.  
+Some principles hold; because if the user interacts with your form before JS is loaded or if it's broken, you still have to handle the submission gracefully, with the PRG pattern etc.
 
 ```ts twoslash
 // @filename: /src/document.ts
-import { html } from '@lit-labs/ssr';
-export const defaultDocument = (options: { url: URL }) => html` ... `;
-
+import { html } from '@gracile/gracile/server-html';
+export const document = () => html` ... `;
 // ---cut---
 // @filename: /src/routes/form-js.client.ts
 
@@ -17,7 +17,7 @@ customElements.define(
   'form-augmented',
   class extends HTMLElement {
     #form = this.querySelector('form')!;
-    #debugger = this.querySelector('pre#debug')!;
+    #debugger = this.querySelector('#debugger')!;
 
     connectedCallback() {
       this.#form.addEventListener('submit', (event) => {
@@ -50,14 +50,19 @@ customElements.define(
 
 // @filename: /src/routes/form.ts
 
+import { defineRoute } from '@gracile/gracile/route';
 import { html } from 'lit';
-import { defineRoute, jsonResponse } from '@gracile/server/route';
-import { defaultDocument } from '../document.js';
+import { document } from '../document.js';
 
 let myData = 'untouched';
 
 export default defineRoute({
   handler: {
+    GET: () => {
+      const props = { success: false, myData };
+      return props;
+    },
+
     POST: async (context) => {
       const formData = await context.request.formData();
 
@@ -70,29 +75,29 @@ export default defineRoute({
       } else {
         props.success = true;
         myData = myFieldValue;
+        props.myData = myData;
       }
 
       if (formData.get('format') === 'json') {
-        return jsonResponse(props, context.response);
+        return Response.json(props, context.response);
       } else {
         // TIP: No-JS fallback
         if (props.success) {
           return Response.redirect(context.url, 303);
         } else {
+          // IMPORTANT: We want the user data to be repopulated in the page after a failed `POST`.
           return props;
         }
       }
     },
   },
 
-  document: (context) => defaultDocument(context),
+  document: (context) => document(context),
 
-  page: (context) => {
+  template: (context) => {
     console.log(context);
 
     return html`
-      <script type="module" src="/src/routes/form-js.client.ts"></script>
-
       <code>${context.request.method}</code>
 
       <form-augmented>
@@ -101,7 +106,7 @@ export default defineRoute({
           <button>Change field value</button>
         </form>
 
-        <pre id="debug">${context.props.POST?.success} - ${myData}</pre>
+        <pre id="debugger">${JSON.stringify(context.props, null, 2)} </pre>
       </form-augmented>
     `;
   },

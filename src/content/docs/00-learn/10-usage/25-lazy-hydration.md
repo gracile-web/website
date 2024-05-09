@@ -25,8 +25,6 @@ import { html } from 'lit';
 
 export function siteSearch() {
   return html`
-    <script type="module" src="/src/modules/site-search.client.ts"></script>
-
     <div class="m-site-search">
       <!-- v—— Not loaded yet! It is just a generic element for now -->
       <search-popup>
@@ -40,13 +38,15 @@ export function siteSearch() {
 Our `<search-popup>` component can look like this:
 
 ```ts twoslash
-// @filename: /src/components/search-popup.ts
+// @filename: /src/features/search-popup.ts
 
 import { LitElement, html } from 'lit';
 import { customElement } from 'lit/decorators.js';
+
+import './my-dialog.js';
 // ...
-// @ts-ignore This will be loaded lazily alongside the web component.
-await import('/my-HEAVY-stuff.js');
+// NOTE: This will be loaded lazily alongside the web component.
+await import('./my-HEAVY-stuff.js');
 
 @customElement('search-popup')
 export class SearchPopup extends LitElement {
@@ -55,9 +55,9 @@ export class SearchPopup extends LitElement {
       <!-- The button in light DOM will be slotted here -->
       <slot></slot>
 
-      <sl-dialog>
+      <my-dialog>
         <!-- ... -->
-      </sl-dialog>
+      </my-dialog>
     `;
   }
 }
@@ -74,6 +74,44 @@ requestIdleCallback(() => import('../components/search-popup.js'));
 That's all you need for deferring non-visible components when your user browser has finished doing critical work on page load.  
 Note that for everything visible right away, you should avoid this technique
 or it will cause a flash of unstyled content (FOUC).
+
+> [!IMPORTANT]
+> You might need a polyfill for `requestIdleCallback`!  
+> As often, Gracile avoids shipping implicit features like these.
+
+<caniuse-embed feature="requestidlecallback" periods="future_1,current,past_1,past_2"></caniuse-embed>
+
+<div class="git-only">
+
+[`requestIdleCallback` on caniuse.com](https://caniuse.com/requestidlecallback)
+
+</div>
+
+---
+
+Still, you can add it in a pinch like this:
+
+```ts twoslash
+// @filename: /src/document.ts
+
+import { html } from '@gracile/gracile/server-html';
+import { helpers } from '@gracile/gracile/document';
+
+export const document = () => html`
+  <!doctype html>
+  <html>
+    <head>
+      <!-- ... -->
+      ${helpers.polyfills.requestIdleCallback}
+      <!-- ... -->
+    </head>
+    <!-- ... -->
+    <body>
+      <route-template-outlet></route-template-outlet>
+    </body>
+  </html>
+`;
+```
 
 ## Load on user interaction
 

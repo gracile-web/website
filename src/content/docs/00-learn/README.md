@@ -1,3 +1,3 @@
 # Learn
 
-All you need to get started with your new web project.
+All you need to set up your new web project, leverage Gracile APIs and finally deploy it.
