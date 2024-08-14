@@ -125,7 +125,7 @@ This is a fully working example:
 // @filename: /src/document.ts
 import { html } from '@gracile/gracile/server-html';
 
-export const document = (options: { url: URL }) => html`...`;
+export const document = (props: { url: URL }) => html`...`;
 //---cut---
 
 // @filename: /src/routes/serialization.ts

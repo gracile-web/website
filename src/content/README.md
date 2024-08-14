@@ -17,6 +17,8 @@ client side.
 The ones that you already know and use everywhere else: **HTML**, **CSS** and
 **JavaScript**.
 
+Simplicity doesn't mean obfuscation. You're still in charge without abandoning flexibility to your framework.
+
 </div></div><div class="card"><div class="card-content">
 
 ## Standards oriented
@@ -48,6 +50,14 @@ space.
 
 Gracile is inspired by those widespread practices that will make you feel at
 home.
+
+</div></div><div class="card"><div class="card-content">
+
+## Light and unobtrusive
+
+All in all, the Gracile framework is just Vite, Lit SSR and a very **restricted set of helpers and third parties**.  
+Check its [dependency tree on npmgraph](https://npmgraph.js.org/?q=@gracile/gracile), you'll see by yourself.  
+Also, everything is done to **keep your Vite configuration as pristine as possible**. Augmenting an existing project can be done in a pinch, with no interference.
 
 </div></div><div class="card"><div class="card-content">
 
@@ -104,11 +114,11 @@ export function sql(str: string) {
 import { html } from '@gracile/gracile/server-html';
 import { helpers } from '@gracile/gracile/document';
 
-export const document = (options: { url: URL; title?: string }) => html`
+export const document = (props: { url: URL; title?: string }) => html`
   <!doctype html>
   <html
     lang="en"
-    class=${`page${options.url.pathname.replace('/', '-') || 'home'}`}
+    class=${`page${props.url.pathname.replace('/', '-') || 'home'}`}
   >
     <head>
       <!-- NOTE: Helpers -->
@@ -122,7 +132,7 @@ export const document = (options: { url: URL; title?: string }) => html`
       ${helpers.pageAssets}
 
       <!-- NOTE: SEO -->
-      <title>${options.title ?? 'My Website'}</title>
+      <title>${props.title ?? 'My Website'}</title>
 
       <!-- ... -->
     </head>
@@ -143,7 +153,7 @@ import { db, sql, Achievement } from '../lib/db.js';
 
 import { document } from '../document.js';
 
-import * as homeReadme from '../content/README.md' with { type: 'markdown-lit' };
+import homeReadme from '../content/README.md';
 
 import type { MyElement } from '../features/my-element.ts';
 import '../features/my-element.js';
@@ -161,14 +171,13 @@ export default defineRoute({
       }
 
       const message = 'Wrong input!' as const;
-      context.response.status = 400;
-      context.response.statusText = message;
+      context.responseInit.status = 400;
       return { success: false, message };
     },
   },
 
   document: (context) =>
-    document({ url: context.url, title: homeReadme.title }),
+    document({ url: context.url, title: homeReadme.meta.title }),
 
   template: async (context) => {
     const initialData = { foo: 'bar' } satisfies MyElement['initialData'];
@@ -183,10 +192,10 @@ export default defineRoute({
         await new Promise((r) => setTimeout(() => r(console.log('Hi!')), 1500));
       </script>
 
-      <h1>${homeReadme.title}</h1>
+      <h1>${homeReadme.meta.title}</h1>
 
       <main>
-        <article>${homeReadme.content}</article>
+        <article>${homeReadme.body.lit}</article>
       </main>
 
       <aside>

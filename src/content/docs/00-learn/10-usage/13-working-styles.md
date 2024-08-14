@@ -176,7 +176,9 @@ export class MyLitElement extends LitElement {
 }
 ```
 
-But please note that, generally, tooling works better with true CSS files (editor hints, linters, processors…).
+But please note that, in nearly all cases, tooling works better within their original environment (editor hints, linters, processors…), in this case, a `.css` file.
+
+Composite files make tooling exponentially buggy.
 
 ### Adopt in the global document
 

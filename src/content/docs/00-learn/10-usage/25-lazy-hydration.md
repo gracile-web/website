@@ -71,12 +71,12 @@ And now, the magic trick is:
 requestIdleCallback(() => import('../components/search-popup.js'));
 ```
 
-That's all you need for deferring non-visible components when your user browser has finished doing critical work on page load.  
+That's all you need for deferring non-visible components when your user browser has finished doing critical work; after the page has loaded.  
 Note that for everything visible right away, you should avoid this technique
 or it will cause a flash of unstyled content (FOUC).
 
 > [!IMPORTANT]
-> You might need a polyfill for `requestIdleCallback`!  
+> You might need [a](https://github.com/pladaria/requestidlecallback-polyfill) [polyfill](https://github.com/aFarkas/requestIdleCallback) for `requestIdleCallback`!  
 > As often, Gracile avoids shipping implicit features like these.
 
 <caniuse-embed feature="requestidlecallback" periods="future_1,current,past_1,past_2"></caniuse-embed>
@@ -86,32 +86,6 @@ or it will cause a flash of unstyled content (FOUC).
 [`requestIdleCallback` on caniuse.com](https://caniuse.com/requestidlecallback)
 
 </div>
-
----
-
-Still, you can add it in a pinch like this:
-
-```ts twoslash
-// @filename: /src/document.ts
-
-import { html } from '@gracile/gracile/server-html';
-import { helpers } from '@gracile/gracile/document';
-
-export const document = () => html`
-  <!doctype html>
-  <html>
-    <head>
-      <!-- ... -->
-      ${helpers.polyfills.requestIdleCallback}
-      <!-- ... -->
-    </head>
-    <!-- ... -->
-    <body>
-      <route-template-outlet></route-template-outlet>
-    </body>
-  </html>
-`;
-```
 
 ## Load on user interaction
 

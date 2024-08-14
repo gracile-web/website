@@ -1,4 +1,4 @@
-# JSON endpoint with routing
+# Routing within a single endpoint
 
 Gracile doesn't aim to replace full-fledged HTTP frameworks like Express, Hono, Elysia, Fastify, etc.  
 However, you might want to colocate JSON endpoints with your front-end, to achieve what is often called the "Back-For-Front" pattern.  
@@ -71,8 +71,8 @@ export default defineRoute({
   handler: (context) => {
     if (context.request.method !== 'GET')
       return Response.json(
-        { success: false },
-        { status: 405, statusText: `Only "GET" is allowed.` },
+        { success: false, message: `Only "GET" is allowed.` },
+        { status: 405 },
       );
 
     const result = petStorePattern.exec(context.url);
@@ -84,14 +84,14 @@ export default defineRoute({
       if (foundPet) return Response.json({ success: true, data: foundPet });
 
       return Response.json(
-        { success: false },
-        { status: 404, statusText: `Pet "${id}" not found!` },
+        { success: false, message: `Pet "${id}" not found!` },
+        { status: 404 },
       );
     }
 
     return Response.json(
-      { success: false },
-      { status: 400, statusText: `Unknown API route for "${context.url}"` },
+      { success: false, message: `Unknown API route for "${context.url}"` },
+      { status: 400 },
     );
   },
 });

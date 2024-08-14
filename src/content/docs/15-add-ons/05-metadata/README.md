@@ -8,6 +8,10 @@ This add-on will take care of the nitty-gritty.
 
 ## Installation
 
+> [!TIP]
+> You can u**se this extension with any Vite+Lit SSR setup**!  
+> It's totally decoupled from the framework.
+
 ```sh
 npm i @gracile/metadata
 ```
@@ -21,15 +25,15 @@ import { html } from '@gracile/gracile/server-html';
 import { helpers } from '@gracile/gracile/document';
 import { createMetadata } from '@gracile/metadata';
 
-export const document = (options: { url: URL; title?: string }) => html`
+export const document = (props: { url: URL; title?: string }) => html`
   <!doctype html>
   <html lang="en">
     <head>
       <!-- SEO -->
       ${createMetadata({
         siteTitle: 'My Site',
-        pageTitle: `My Page | ${options.title ?? 'Untitled'}`,
-        ogTitle: options.title,
+        pageTitle: `My Page | ${props.title ?? 'Untitled'}`,
+        ogTitle: props.title,
         pageDescription: 'The description…',
       })}
     </head>

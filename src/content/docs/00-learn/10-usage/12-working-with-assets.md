@@ -46,16 +46,18 @@ E.g.
 import { html } from '@gracile/gracile/server-html';
 
 export const document = html`
-  ...
-  <link
-    rel="stylesheet"
-    href=${new URL('./document.css', import.meta.url).pathname}
-  />
-  <script
-    type="module"
-    src=${new URL('./document.client.ts', import.meta.url).pathname}
-  ></script>
-  ...
+  <head>
+    ...
+    <link
+      rel="stylesheet"
+      href=${new URL('./document.css', import.meta.url).pathname}
+    />
+    <script
+      type="module"
+      src=${new URL('./document.client.ts', import.meta.url).pathname}
+    ></script>
+    ...
+  </head>
 `;
 ```
 
@@ -82,8 +84,8 @@ Note that Vite will deduplicate/bundle per-route assets properly for build. E.g.
 <script type="module" src="/src/beta.ts"></script>
 <script type="module" src="..."></script>
 
-<!-- Become one after build -->
-<script type="module" src="/assets/page-bundle-123.js"></script>
+<!-- NOTE: It becomes one after build -->
+<script type="module" src="/assets/page-bundle-123h4sh.js"></script>
 ```
 
 <!-- OBSOLETE -->
@@ -97,15 +99,14 @@ Inline scripts (immediately invoked), style tags and CSS links will be left in p
 // @filename: /src/document.ts
 
 import { html } from '@gracile/gracile/server-html';
-import { helpers } from '@gracile/gracile/document';
 
 export const document = () => html`
   <!doctype html>
   <html lang="en">
     <head>
       ...
-      <!-- Helpers -->
-      ${helpers.pageAssets}
+
+      <!-- TIP: Route sibling page assets will be appended here, right before the closing HEAD -->
     </head>
 
     ...
@@ -113,7 +114,7 @@ export const document = () => html`
 `;
 ```
 
-Using the `helper.pageAssets` in your document will automatically provide all route sibling assets.
+<!-- Using the `helper.pageAssets` in your document will automatically provide all route sibling assets. -->
 
 Given:
 
@@ -136,10 +137,10 @@ Result in:
 <script type="module" src="/src/routes/my-page.client.ts"></script>
 ```
 
-This mechanism isn't here just for "convenience", it's made to streamline the way the _server_ handler will be generated (but it's also useful for static mode).  
+This mechanism isn't here just for convenience, but to make to streamline the way the _server_ handler will be generated (but it's also useful for static mode).  
 Putting all route assets at the document level allows for deterministic optimizations by the bundler at build time, which wouldn't be possible (at least easily) at run time.
 
-It's an opt-in, explicit feature here. You're free not to always incorporate it.
+<!-- It's an opt-in, explicit feature here. You're free not to always incorporate it. -->
 
 ### 3. Anywhere in a server template
 

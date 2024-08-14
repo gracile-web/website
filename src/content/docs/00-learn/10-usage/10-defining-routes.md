@@ -56,11 +56,11 @@ Given a pre-existing document, you'll import it like this in your route configur
 import { html } from '@gracile/gracile/server-html';
 
 // [!code word:document:1]
-export const document = (options: { url: URL }) => html`
+export const document = (props: { url: URL }) => html`
   <html>
     <head>
       <!-- ... -->
-      <title>${url.pathname}</title>
+      <title>${props.url.pathname}</title>
     </head>
     <body>
       <route-template-outlet></route-template-outlet>
@@ -92,9 +92,9 @@ When used **alone**, we'll call it an HTML "**Fragment**".
 
 import { html } from 'lit';
 import { defineRoute } from '@gracile/gracile/route';
-
 export default defineRoute({
   // ...
+  // [!code highlight:2]
   template: (context) => html`
     <main>
       <article class="prose">Hello</article>
@@ -116,7 +116,7 @@ Hover `context.props` and `context.params` to see!
 // @filename: /src/document.ts
 import { html } from '@gracile/gracile/server-html';
 
-export const document = (options: { url: URL }) => html`...`;
+export const document = (props: { url: URL }) => html`...`;
 
 //---cut---
 // @filename: /src/routes/[...path].ts
@@ -127,6 +127,7 @@ import { defineRoute } from '@gracile/gracile/route';
 import { document } from '../document.js';
 
 export default defineRoute({
+  // [!code highlight:2]
   staticPaths: () =>
     [
       {
@@ -150,9 +151,38 @@ export default defineRoute({
 });
 ```
 
-### `handler` (experimental)
+### `prerender`
 
-Used with [**server** mode](/docs/learn/usage/output-modes/#doc_server-soon) only.  
+For `server` output only.  
+Will generate a **full HTML file** as if it was generated from the `static` output mode.  
+Useful for pages that don't need to be dynamic on the server side (e.g., contact, docs, about…).
+
+```ts twoslash
+// @filename: /src/document.ts
+import { html } from '@gracile/gracile/server-html';
+
+export const document = (props: { url: URL }) => html`...`;
+
+//---cut---
+// @filename: /src/routes/about.ts
+
+import { html } from 'lit';
+import { defineRoute } from '@gracile/gracile/route';
+
+import { document } from '../document.js';
+
+export default defineRoute({
+  prerender: true, // [!code highlight]
+
+  document: (context) => document(context),
+
+  template: async (context) => html` <h1>I will be prerendered!</h1> `,
+});
+```
+
+### `handler`
+
+Used with [**server** mode](/docs/learn/usage/output-modes/#doc_server-mode) only.  
 Like `staticPaths`, `handler` is a provider for `props` and can receive the current — matched route — `params`.
 
 There are **two behaviors** for the handlers:
@@ -225,7 +255,7 @@ A new method, "[`QUERY`](https://httpwg.org/http-extensions/draft-ietf-httpbis-s
 // @filename: /src/document.ts
 import { html } from '@gracile/gracile/server-html';
 
-export const document = (options: { url: URL; title: string }) => html``;
+export const document = (props: { url: URL; title: string }) => html``;
 
 // ---cut---
 // @filename: /src/routes/my-page.ts
@@ -253,7 +283,7 @@ export default defineRoute({
 
 Sometimes, you don't want to bring a page template in a route, just a bare HTML document, maybe with some `<meta>`; perfect use-case: page redirects.
 
-It's totally possible to skip the `template` altogether and just use a single `document`.
+It's totally possible to skip the `template` altogether and just use a single, server-only `document`.
 
 Here, we will redirect the user to another URL, while collecting some analytics,
 all that with a nice and simple transitive screen:
@@ -264,11 +294,11 @@ all that with a nice and simple transitive screen:
 import { defineRoute } from '@gracile/gracile/route';
 import { html } from '@gracile/gracile/server-html';
 
-import discordLogo from '../assets/icons/discord.svg' with { type: 'svg-lit' };
+import discordLogo from '../assets/icons/discord.svg';
 import { DISCORD_INVITE_URL } from '../content/global.js';
 import { googleAnalytics } from '../document-helpers.js';
 
-const waitTime = 2;
+const waitTimeInSeconds = 2;
 
 export default defineRoute({
   document: () => html`
@@ -282,16 +312,9 @@ export default defineRoute({
 
         <style>
           & {
-            margin: calc(10dvh + 10dvw);
             font-family: system-ui;
-            font-size: 2rem;
-            text-align: center;
             color-scheme: dark light;
-          }
-
-          svg {
-            height: 3rem;
-            width: 3rem;
+            /* ... */
           }
         </style>
 
@@ -300,7 +323,7 @@ export default defineRoute({
         <!-- NOTE: The current page, "https://gracile.js.org/chat/", will be forgotten from history after the redirection.  -->
         <meta
           http-equiv="refresh"
-          content=${`${waitTime};URL=${DISCORD_INVITE_URL}`}
+          content=${`${waitTimeInSeconds};URL=${DISCORD_INVITE_URL}`}
         />
       </head>
 
@@ -317,22 +340,25 @@ export default defineRoute({
 
 ## What to put in routes?
 
-Data fetching, dispatching, per-route assets to bundle, components, templates, modules, features…
+Routes are the most basic unit of interaction with your user.
 
-It's generally better to use routes as entry points and not put too much UI or logic in there, besides what's strictly needed to bootstrap the page.  
+This is where you should do data fetching, and dispatch them to "components", "templates", "modules", "features" or whatever conventions you choose to represent this data.
+
+It's generally better to use routes as entry points and not put too much UI or logic in there, besides what's strictly needed to bootstrap the page and forward the context to components.  
 Routes are kind of "magic", in the sense that you're not calling them yourself in your
 code, but the framework will use them predictably.
-Thankfully, Gracile isn't crowding top level module exports, but just the default one.  
-While it adds a level of indentation, it avoids clashes with your module-scoped functions.  
+Thankfully, Gracile isn't crowding top level module exports, but just the default one, with the `defineRoute` helper.  
+While it adds a level of indentation (versus a top level export), it avoids clashes with your module-scoped functions.  
 This is a perfectly reasonable use of ESM default exports.  
-No static analysis or extraction either, meaning your functions are not in silos and won't behave in unexpected ways due to custom pre-processing.
+No static analysis or extraction either, meaning your functions are not in silos and won't behave in unexpected ways due to custom pre-processing, which is very common in other frameworks.
 
 ## Client-side routing
 
-For now, Gracile doesn't provide any CSR mechanism out of the box.  
-Due to the varying needs among developers, it's not in the scope, but at one
+**_For now_**, Gracile doesn't provide any CSR mechanism out of the box.
+
+<!-- Due to the varying needs among developers, it's not in the scope, but at one
 point, if it adds value (like client/server symbiosis) an add-on could be
-created.
+created. -->
 
 Note that the [Metadata add-on](/docs/add-ons/metadata/)
 provides a `viewTransition` option that will make this browser native
@@ -347,6 +373,7 @@ Fortunately, there are plenty of options regarding CSR in the Lit ecosystem:
 - [Navigo](https://github.com/krasimir/navigo)
 - [thepassle's app-tools](https://github.com/thepassle/app-tools/tree/master/router) router
 - [Vaadin router](https://github.com/vaadin/router)
+- [micromorph](https://github.com/natemoo-re/micromorph)
 
 You might want to try DOM-diffing libraries, too.
 
@@ -354,8 +381,11 @@ You might want to try DOM-diffing libraries, too.
 
 ### Trailing slashes
 
-For simplicity and predictability, Gracile is only supporting routes that ends with a slash.  
-This is for **pages** and **server endpoints**. Flexibility will be added for the latter.
+For simplicity and predictability, Gracile is only supporting routes that end with a slash.  
+This is for **pages** and **server endpoints**, not assets with file extensions.
+
+Flexibility for the user will be added at one point, but this requires significant implementation work and testing,
+so this is not in the scope yet.
 
 > [!NOTE]
 > The explanation below is extracted from the [Rocket web framework documentation](https://rocket.modern-web.dev/docs/basics/routing/#static-routes).

@@ -3,7 +3,7 @@
 Welcome to the Gracile playground!  
 You'll get a taste of the [fully-featured developer experience](/docs/developer-experience/), minus some advanced language features, only available with the TypeScript Lit Analyzer Plugin/VSCode extension.
 
-The "Kitchen Sink" project will show you project structure, asset management, entity relationships, API features… that will get you on board with Gracile.
+The "Basics" project will show you project structure, asset management, entity relationships, and API features… that will get you on board with Gracile.
 
 ---
 
@@ -42,7 +42,7 @@ The "Kitchen Sink" project will show you project structure, asset management, en
 ## Why?
 
 The goal for building this playground wasn't to re-invent StackBlitz or Codesandbox, which are meant to be fully-featured IDEs,
-but rather to provide a highly tailored REPL for working with CSS/HTML template literals.  
+but rather to provide a highly tailored environment for working with CSS/HTML template literals.  
 As for now, Web Containers vendors aren't supporting **syntax highlighting**, **formatting** or **IntelliSense** for them.  
 It also allows for a deeper integration, generally.
 

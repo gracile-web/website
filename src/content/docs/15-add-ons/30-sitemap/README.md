@@ -9,9 +9,9 @@ npm i @gracile/sitemap
 ```
 
 ```ts twoslash
-// @filename: /gracile.config.ts
+// @filename: /vite.config.ts
 
-import { defineConfig } from '@gracile/gracile';
+import { defineConfig } from 'vite';
 
 import { viteSitemapPlugin } from '@gracile/sitemap/vite'; // [!code highlight]
 
@@ -20,21 +20,19 @@ const SITE_URL = 'https://example.com/';
 export default defineConfig({
   // ...
 
-  vite: {
-    plugins: [
-      viteSitemapPlugin({
-        // IMPORTANT: This is mandatory.
-        siteUrl: SITE_URL,
-        // NOTE: This is the default robots.txt that you can override if needed.
-        robotsTxt: [
-          ['User-agent', '*'],
-          ['Allow', '/'],
-          ['Sitemap', `${SITE_URL}sitemap.xml`],
-        ],
-      }),
-      // ...
-    ],
-  },
+  plugins: [
+    viteSitemapPlugin({
+      // IMPORTANT: This is mandatory.
+      siteUrl: SITE_URL,
+      // NOTE: This is the default robots.txt that you can override if needed.
+      robotsTxt: [
+        ['User-agent', '*'],
+        ['Allow', '/'],
+        ['Sitemap', `${SITE_URL}sitemap.xml`],
+      ],
+    }),
+    // ...
+  ],
 });
 ```
 

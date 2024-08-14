@@ -1,4 +1,4 @@
-# Working with forms (no-JS)
+# Handle forms (no-JS)
 
 This is a full example of how to handle forms in Gracile.
 Server-only handling, no JS needed.
@@ -10,8 +10,9 @@ export const document = () => html` ... `;
 // ---cut---
 // @filename: /src/routes/form.ts
 
-import { html } from 'lit';
 import { defineRoute } from '@gracile/gracile/route';
+import { html } from 'lit';
+
 import { document } from '../document.js';
 
 // -----------------------------------------------------------------------------
@@ -78,12 +79,11 @@ export default defineRoute({
                 coolnessFactor: Number(coolnessFactor),
               });
             } else {
-              context.response.status = 400;
-              context.response.statusText = 'Wrong form input.';
+              context.responseInit.status = 400;
               // IMPORTANT: We want the user data to be repopulated in the page after a failed `POST`.
               return {
                 success: false,
-                message: context.response.statusText,
+                message: 'Wrong form input.',
                 achievements: achievementsDb,
                 payload: { name, coolnessFactor },
               } as const;
@@ -96,11 +96,10 @@ export default defineRoute({
           break;
 
         default:
-          context.response.status = 422;
-          context.response.statusText = 'Unknown form action.';
+          context.responseInit.status = 422;
           return {
             success: false,
-            message: context.response.statusText,
+            message: 'Unknown form action.',
             achievements: achievementsDb,
           } as const;
       }

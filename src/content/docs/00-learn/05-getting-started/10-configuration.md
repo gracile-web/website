@@ -1,32 +1,25 @@
 # ⚙️ Configuration
 
-There aren't many things (yet) to configure with Gracile, and most of your endeavors are achievable through the Vite/Rollup configuration API.
+There aren't many things (yet) to configure with Gracile, and most of your endeavors are achievable by interacting with the Vite/Rollup plugin pipeline.
 
 ## Configuration file
 
-The `gracile.config` (`.js` or `.ts`) is where you put the Gracile specifics and Vite options.  
-Can be a **TypeScript** or a **JavaScript** file.
+The `vite.config` (`.js` or `.ts`) is where you put the Gracile plugin specifics and Vite options.  
+It can be a **TypeScript** or a **JavaScript** file.
 
 ```ts twoslash
-// @filename: /gracile.config.ts
+// @filename: /vite.config.ts
 
-import { defineConfig } from '@gracile/gracile';
+import { defineConfig } from 'vite';
+import { gracile } from '@gracile/gracile/plugin';
 
 export default defineConfig({
-  port: 4567,
-
-  vite: {
-    plugins: [
-      // ...
-    ],
+  server: {
+    port: 4567,
   },
+  plugins: [gracile()],
 });
-
-// -----------------------------------------------------------------------------
 ```
-
-> [!TIP]  
-> This file is totally **optional**!
 
 ### Capabilities
 
@@ -48,16 +41,18 @@ The bare minimum is a `src/routes/<...>.ts` file.
 <div class="file-tree">
 
 - my-project/
-  - gracile.config.ts _- Base config._
-  - public/ _- Static assets._
+  - vite.config.ts _- Vite and Gracile project configuration_.
+  - public/ _- Static assets_.
     - favicon.svg
   - src/
+    - ambient.d.ts _- Vite, Gracile, etc. environmental types_.
     - routes/
-      - index.ts _- At least one route is required_
+      - index.ts _- At least one route is required_.
       - foo/
+        - (the-foo-index).ts
         - [myParam].ts
         - bar/
-          - [..restParams].ts
+          - [...restParams].ts
   - ...
 
 </div>

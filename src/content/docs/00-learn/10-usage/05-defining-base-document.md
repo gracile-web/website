@@ -5,58 +5,53 @@ They are housing critical assets, page metadata, hydration helpers, asset entry 
 
 ## Example
 
+<!-- Automatic page assets injection ${helpers.pageAssets} -->
+
 ```ts twoslash
 // @filename: /src/document.ts
 
 // WARNING: We're using the server-only "html" from Lit SSR here, not the regular Lit package.
 
 import { html } from '@gracile/gracile/server-html';
-import { helpers } from '@gracile/gracile/document';
 import { createMetadata } from '@gracile/metadata';
 
 const SITE_TITLE = 'My Website';
 
+// TIP: You can insert inline, critical scripts or styles snippets like here:
 const criticalAssets = html`
   <script>
     {
       const msg = 'Hello';
       console.log(msg);
-      // Do critical stuff inline
     }
   </script>
 `;
 
-// NOTE: "url" is the bare minimum provided in the route context by Gracile.
+// NOTE: "url" is the bare minimum provided in the route context by Gracile, but you can still augment  document props.
 
-export const document = (options: { url: URL; title?: string }) => html`
+export const document = (props: { url: URL; title?: string }) => html`
   <!doctype html>
   <html lang="en">
     <head>
-      <!-- Helpers -->
-      ${helpers.fullHydration}
+      <!-- NOTE: Critical assets. -->
+      ${criticalAssets}
 
-      <!-- Global assets -->
-      <!-- CAUTION: Use the full real path (relative to the project root) -->
+      <!-- NOTE: Global stylesheets or ES modules for this document. -->
       <link rel="stylesheet" href="/src/styles/global.scss" />
+      <!-- CAUTION: Use the full real path (relative to the project root) -->
       <script type="module" src="/src/document.client.ts"></script>
 
-      <!-- Metadata -->
+      <!-- NOTE: The metadata addon to make SEO simpler. -->
       ${createMetadata({
         siteTitle: SITE_TITLE,
-        pageTitle: `${SITE_TITLE} | ${options.title || 'Home'}`,
+        pageTitle: `${SITE_TITLE} | ${props.title || 'Home'}`,
         faviconUrl: '/public/favicon.svg',
         pageDescription: 'A cool website',
       })}
-
-      <!-- Critical Assets -->
-      ${criticalAssets}
-
-      <!-- Automatic page assets injection -->
-      ${helpers.pageAssets}
     </head>
 
     <body>
-      <!-- WARNING: Don't forget to add this. Otherwise your route's page template won't be inserted. -->
+      <!-- WARNING: Don't forget to add this. Otherwise your route's page template won't be inserted! -->
       <route-template-outlet></route-template-outlet>
     </body>
   </html>
@@ -91,6 +86,22 @@ export default defineRoute({
 > You CAN nest **server** OR **regular** templates in **server** templates.  
 > You CANNOT nest **server** templates in **regular** templates.
 
+## Hydration
+
+If you need client-side interactivity with Lit Custom Elements,
+don't forget to import the hydration helper in the document script entry point:
+
+```ts
+// @filename: /src/document.client.ts
+
+// WARNING: It's important to hydrate eagerly, before defining any Lit Element in the global registry.
+import '@gracile/gracile/hydration';
+
+// NOTE: Then import your elements, here globally, or per page (e.g. in /src/routes/my-route.client.ts).
+import './my-ubiquitous-lit-element.ts';
+// ...
+```
+
 ## Page outlet
 
 `<route-template-outlet></route-template-outlet>` is a special tag, a placeholder that will be replaced with your page rendering.  
@@ -114,29 +125,7 @@ can be an interesting pattern to explore.
 
 It's pretty good!
 
-But if you have to support older browsers, you can add a polyfill in a pinch like this:
-
-```ts twoslash
-// @filename: /src/document.ts
-
-import { html } from '@gracile/gracile/server-html';
-import { helpers } from '@gracile/server/document';
-
-export const document = () => html`
-  <!doctype html>
-  <html>
-    <head>
-      <!-- ... -->
-      ${helpers.polyfills.declarativeShadowDom}
-      <!-- ... -->
-    </head>
-    <!-- ... -->
-    <body>
-      <route-template-outlet></route-template-outlet>
-    </body>
-  </html>
-`;
-```
+But if you have to support older browsers, you can use a [ponyfill](https://github.com/webcomponents/template-shadowroot).
 
 ## Notes
 
@@ -178,4 +167,4 @@ Most projects won't need to define multiple documents, but if you find yourself
 having too many divergences, or for other reasons like security, you have the
 flexibility to do that.
 
-Gracile isn't aware of anything other than you route files, you can locate and name documents, components, etc. with your conventions.
+Gracile isn't aware of anything other than you route files and their sibling assets, you can locate and name documents, components, etc. with your conventions.

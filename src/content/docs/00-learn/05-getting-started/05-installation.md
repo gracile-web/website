@@ -1,7 +1,7 @@
 # 📦 Installation
 
 Start developing with Gracile in less than 1 minute ⏳.  
-You can either use the CLI, fetch a starter or start from scratch.
+You can either use the CLI, a starter template, convert an existing Vite project, or start from scratch.
 
 ## The "Create" command
 
@@ -24,21 +24,26 @@ yarn create gracile@latest
 ```text
   -d, --location <string>        Project directory location.
 
-  -t, --template <string>        Choose a starter template.
+  -t, --template <string>        Choose a starter template. Available:
+                                 minimal-static, minimal-server-express,
+                                 minimal-server-hono, basics-blog-static,
+                                 basics-server
 
-  -i, --install-dependencies     Automatically install dependencies
-                                 with your detected package manager.
+  -n, --next                     Use the `next` version of the selected template.
 
-  -g, --initialize-git           Initialize a git repository after
-                                 setting up your project.
+  -i, --install-dependencies     Automatically install dependencies with your detected
+                                 package manager.
 
-  -s, --use-previous-settings    Whether or not we should load previous
-                                 settings.
+  -g, --initialize-git           Initialize a git repository after setting up your project.
+
+  -s, --use-previous-settings    Whether or not we should load previous settings.
 
   -r, --clear-previous-settings  Clear previously saved settings.
 
   -h, --help                     display help for command
 ```
+
+`npm create gracile@next` can be used to try the pre-release version of the `create-gracile`, CLI, too.
 
 ### Requirements
 
@@ -47,12 +52,12 @@ yarn create gracile@latest
 
 ## Fetch a starter project
 
-This an alternative way to create a preconfigured project with Gracile.
+This is an alternative way to create a preconfigured project with Gracile.
 
 Shallow clone a starter project from the repository with the `degit` command.
 
 ```sh
-npx degit gracile-web/starter-projects/minimal-static my-project
+npx degit gracile-web/starter-projects/templates/minimal-static my-project
 
 cd my-project
 npm run dev
@@ -71,27 +76,58 @@ Here is a minimal boilerplate.
 {
   "name": "my-gracile-project",
   "type": "module",
+  "version": "0.0.0",
   "private": true,
 
   "scripts": {
-    "dev": "gracile-dev",
-    "build": "gracile build",
-    "preview": "gracile preview"
+    "dev": "vite",
+    "check": "tsc",
+    "build": "vite build",
+    "preview": "vite preview"
   },
 
   "dependencies": {
-    "@gracile/gracile": "latest"
+    "@gracile/gracile": "latest",
+    "vite": "latest"
   },
   "devDependencies": {
+    "@types/node": "latest",
     "typescript": "latest"
   }
 }
 ```
 
-### Packages
+For a server build, you can use these extra shorthands:
+
+```jsonc
+{
+  "scripts": {
+    // ...
+    "preview": "node --watch -C preview server.js",
+    "start": "node server.js",
+    // TIP: Or with a TypeScript runner.
+    "preview": "tsx --watch -C preview server.js",
+    "start": "tsx server.js",
+  },
+}
+```
+
+The `-C` stands for `--conditions`.
+
+You'll find that Gracile relies fairly
+on [Node's export conditions](https://nodejs.org/api/packages.html#conditional-exports).  
+Here, it's useful to get the logger running, while it's not in `production` (the default).
+
+Those are just hints, it's up to you to integrate with your favorite workflow, like using `tsc` + `node --watch` instead of `tsx` etc.  
+The server is running separately from Vite, it's totally outside the Gracile/Vite realms.
+
+### Packages installation
 
 ```sh
 npm install @gracile/gracile
+
+# Next version, in development
+npm install @gracile/gracile@next
 
 # Addons…
 npm install \
@@ -104,7 +140,12 @@ npm install \
 
 <!-- @gracile/prefetch \ -->
 
-See [add-ons](/docs/add-ons/).
+See all [add-ons](/docs/add-ons/).
+
+---
+
+The `@next` tag can be used for any `@gracile/*` package.  
+That way, you will get a preview of the **unreleased** builds.
 
 #### Lit (optional)
 
@@ -117,6 +158,9 @@ npm install lit
 > for both **client** and **server**.  
 > However, for a fully static website, the **server-only** `html` is enough.  
 > It's the `@lit-labs/ssr`'s `html` which is re-exported from `@gracile/gracile/server-html`.
+
+Lit exports some utilities that you'll find useful, even if you're not using
+hydration and other client features at all.
 
 <!-- Gracile is defining those as peer dependencies, pinned to major semver.
 That means you can use the version you want in that range, without the
@@ -133,6 +177,20 @@ Three levels of type safety are available with these presets: `base`, `strict` o
 {
   "extends": "@gracile/gracile/tsconfigs/strictest", // Or `base` | `strict`
 }
+```
+
+### Ambient typings
+
+```ts twoslash
+// @filename: /ambient.d.ts
+
+// NOTE: This will also forward Vite's own typings, like "import.meta.env" etc.
+/// <reference types="@gracile/gracile/ambient" />
+
+// For add-ons and third-parties…
+/// <reference types="@gracile/markdown/ambient" />
+/// <reference types="@gracile/svg/ambient" />
+// ...
 ```
 
 ## Requirements

@@ -2,10 +2,6 @@
 
 You might wonder yourself what Gracile has to offer which makes it apart from existing solutions. This section addresses general and specific issues about this full-stack web framework.
 
-<section class="cards">
-
-<div class="card"><div class="card-content">
-
 ## Why?
 
 There wasn't much (if any?) platform-oriented, **full-stack** meta-framework
@@ -23,8 +19,6 @@ especially on the server side.
 
 The base goal is to make the plunge easier for beginners but also to bring
 comfortable bootstraps for accustomed developers.
-
-</div></div><div class="card"><div class="card-content">
 
 ## Is it tied to any vendor?
 
@@ -48,8 +42,6 @@ safety and DX goodies underneath, meaning nearly zero lock-in.
 Think of those as "blending" tools.  
 They don't force you into unholy contortions.
 
-</div></div><div class="card"><div class="card-content">
-
 ## Do I need a specific server runtime?
 
 Gracile's "server" mode build is just outputting a handler.  
@@ -64,8 +56,6 @@ Efforts are made to keep Gracile as runtime agnostic as possible, with the
 leading runtime, Node, as the standard baseline and WinterCG proposals as a
 compass. We're slowly getting there, but fragmentation remains. That being said,
 you're still free to engage in side-ways, if that's your will!
-
-</div></div><div class="card"><div class="card-content">
 
 ## How does it compare to XYZ?
 
@@ -84,8 +74,6 @@ dependencies, maintenance and opinions.
 _Do-everything_ frameworks are cool (think Rails, Laravel…), but that's not the
 goal of Gracile. It's up to you to choose your data-sourcing strategy, UI stack,
 HTTP server…
-
-</div></div><div class="card"><div class="card-content">
 
 ## Do I need to use Web Components / Shadow DOM?
 
@@ -108,8 +96,6 @@ SolidStart, Next.js…).
 
 Conceivably, at some point, we'll get "Vanilla" HTML Custom Elements to be
 SSR'ed canonically.
-
-</div></div><div class="card"><div class="card-content">
 
 ## What is the current state of this project?
 
@@ -134,7 +120,3 @@ to dig deeper in web knowledge, which can be overwhelming otherwise.
 Hopefully, big names will start to invest in this niche and make it grow, as
 they did with WC design systems (Spectrum, Carbon, Material, FAST…).  
 More competition will make this ecosystem flourish even more.
-
-</div></div>
-
-</section>

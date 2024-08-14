@@ -15,10 +15,14 @@ npm i @gracile/markdown
 npm i @gracile/markdown-preset-marked
 ```
 
-```ts twoslash
-// @filename: /gracile.config.ts
+> [!TIP]
+> You can u**se this extension with any Vite+Lit setup**!  
+> It's totally decoupled from the framework.
 
-import { defineConfig } from '@gracile/gracile';
+```ts twoslash
+// @filename: /vite.config.ts
+
+import { defineConfig } from 'vite';
 
 import { viteMarkdownPlugin } from '@gracile/markdown/vite'; // [!code highlight:2]
 import { MarkdownRenderer } from '@gracile/markdown-preset-marked';
@@ -26,12 +30,10 @@ import { MarkdownRenderer } from '@gracile/markdown-preset-marked';
 export default defineConfig({
   // ...
 
-  vite: {
-    plugins: [
-      viteMarkdownPlugin({ MarkdownRenderer }), // [!code highlight]
-      // ...
-    ],
-  },
+  plugins: [
+    viteMarkdownPlugin({ MarkdownRenderer }), // [!code highlight]
+    // ...
+  ],
 });
 ```
 
@@ -42,7 +44,7 @@ export default defineConfig({
 
 import { html } from 'lit';
 
-import myDocument from './my-document.md' with { type: 'md-lit' };
+import myDocument from './my-document.md';
 
 export const myPartial = html`
   <article>
@@ -77,7 +79,7 @@ import type {
 ```ts twoslash
 // @filename: /src/document.ts
 import { html } from '@gracile/gracile/server-html';
-export const document = (options: { url: URL; title?: string }) => html`...`;
+export const document = (props: { url: URL; title?: string }) => html`...`;
 //---cut---
 // @filename: /src/content/content.ts
 
