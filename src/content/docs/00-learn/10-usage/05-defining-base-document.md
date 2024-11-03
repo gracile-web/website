@@ -1,4 +1,4 @@
-# Defining the base documents
+# <i-c o='ph:files-duotone'></i-c>Defining the base documents
 
 Document are wrapping your routes and are streamed eagerly.  
 They are housing critical assets, page metadata, hydration helpers, asset entry points…

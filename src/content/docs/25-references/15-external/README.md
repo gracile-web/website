@@ -1,4 +1,4 @@
-## External
+## <i-c o='ph:sphere-duotone'></i-c>External
 
 Pointers to everything related to Gracile, which is not in this present documentation website, like vendors' APIs.
 

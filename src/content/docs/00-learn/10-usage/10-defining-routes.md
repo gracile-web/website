@@ -1,4 +1,4 @@
-# Defining routes
+# <i-c o='ph:signpost-duotone'></i-c>Defining routes
 
 Like every full-stack meta-framework, routes are the central concept of Gracile.  
 This is where everything got tied together, and besides that, and add-ons, there aren't many opinions left.

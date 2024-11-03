@@ -1,4 +1,4 @@
-# 📦 Installation
+# <i-c o='ph:package-duotone'></i-c>Installation
 
 Start developing with Gracile in less than 1 minute ⏳.  
 You can either use the CLI, a starter template, convert an existing Vite project, or start from scratch.
@@ -15,35 +15,11 @@ yarn create gracile@latest
 ```
 
 <!-- TODO: make a macro component -->
-<asciinema-player href="/assets/create-gracile.cast" loop autoplay speed="1.3334" theme="gracile" terminalFontFamily="'Fira Code', monospace">
+<!-- <asciinema-player href="/assets/create-gracile.cast" loop autoplay speed="1.3334" theme="gracile" terminalFontFamily="'Fira Code', monospace">
 <asciinema-player-header slot="header">create gracile</asciinema-player-header>
-</asciinema-player>
+</asciinema-player> -->
 
-### Options
-
-```text
-  -d, --location <string>        Project directory location.
-
-  -t, --template <string>        Choose a starter template. Available:
-                                 minimal-static, minimal-server-express,
-                                 minimal-server-hono, basics-blog-static,
-                                 basics-server
-
-  -n, --next                     Use the `next` version of the selected template.
-
-  -i, --install-dependencies     Automatically install dependencies with your detected
-                                 package manager.
-
-  -g, --initialize-git           Initialize a git repository after setting up your project.
-
-  -s, --use-previous-settings    Whether or not we should load previous settings.
-
-  -r, --clear-previous-settings  Clear previously saved settings.
-
-  -h, --help                     display help for command
-```
-
-`npm create gracile@next` can be used to try the pre-release version of the `create-gracile`, CLI, too.
+See all [`create-gracile` CLI options](/docs/learn/getting-started/command-line-interface/#doc_create-gracile-options).
 
 ### Requirements
 
@@ -187,7 +163,7 @@ Three levels of type safety are available with these presets: `base`, `strict` o
 // NOTE: This will also forward Vite's own typings, like "import.meta.env" etc.
 /// <reference types="@gracile/gracile/ambient" />
 
-// For add-ons and third-parties…
+// NOTE: For add-ons and third-parties…
 /// <reference types="@gracile/markdown/ambient" />
 /// <reference types="@gracile/svg/ambient" />
 // ...

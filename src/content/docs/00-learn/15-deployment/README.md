@@ -1,4 +1,4 @@
-# 🚀 Deployment
+# <i-c o='ph:rocket-launch-duotone'></i-c>Deployment
 
 Your Gracile website can be deployed either statically or built to a handler which can be integrated into any standard compliant web server/runtime.
 

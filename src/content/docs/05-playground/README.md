@@ -1,4 +1,4 @@
-# Playground
+# <i-c o='ph:app-window-duotone'></i-c>Playground
 
 Welcome to the Gracile playground!  
 You'll get a taste of the [fully-featured developer experience](/docs/developer-experience/), minus some advanced language features, only available with the TypeScript Lit Analyzer Plugin/VSCode extension.

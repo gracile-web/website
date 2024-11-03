@@ -9,6 +9,7 @@ Examples, functions, classes, constants, type declarations…
 function defineRoute<
   GetHandlerData,
   PostHandlerData,
+  CatchAllHandlerData,
   StaticPathOptions,
   RouteContext,
 >(options): (RouteModule) => R.RouteModule;
@@ -19,10 +20,13 @@ function defineRoute<
 **Type parameters**
 
 <div class="typedoc-table"><table>
+<thead>
 <tr>
 <th>Type Parameter</th>
 <th>Default type</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td>
 
@@ -39,6 +43,18 @@ function defineRoute<
 <td>
 
 `PostHandlerData` _extends_ `HandlerDataHtml`
+
+</td>
+<td>
+
+`undefined`
+
+</td>
+</tr>
+<tr>
+<td>
+
+`CatchAllHandlerData` _extends_ `HandlerDataHtml`
 
 </td>
 <td>
@@ -71,16 +87,20 @@ function defineRoute<
 
 </td>
 </tr>
+</tbody>
 </table></div>
 
 **Parameters**
 
 <div class="typedoc-table"><table>
+<thead>
 <tr>
 <th>Parameter</th>
 <th>Type</th>
 <th>Description</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td>
 
@@ -126,7 +146,7 @@ Route context is provided at runtime during the build.
 </td>
 <td>
 
-`StaticPathOptions` _extends_ `object` ? `never` : `undefined` \| `Handler`\<`Response`\> \| `object`
+`StaticPathOptions` _extends_ `object` ? `never` : `undefined` \| `Handler`\<`CatchAllHandlerData`\> \| `object`
 
 </td>
 <td>
@@ -170,7 +190,7 @@ Only available in `static` output mode.
 </td>
 <td>
 
-() => `StaticPathOptions`[]
+() => `undefined` \| `MaybePromise`\<`StaticPathOptions`[]\>
 
 </td>
 <td>
@@ -202,6 +222,7 @@ Route context is provided at runtime during the build.
 
 </td>
 </tr>
+</tbody>
 </table></div>
 
 **Returns**
@@ -211,10 +232,13 @@ Route context is provided at runtime during the build.
 **Parameters**
 
 <div class="typedoc-table"><table>
+<thead>
 <tr>
 <th>Parameter</th>
 <th>Type</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td>
 
@@ -227,6 +251,7 @@ _typeof_ `R.RouteModule`
 
 </td>
 </tr>
+</tbody>
 </table></div>
 
 **Returns**
@@ -237,7 +262,7 @@ _typeof_ `R.RouteModule`
 
 **Defined in**
 
-packages/server/dist/route.d.ts:8
+packages/server/dist/route.d.ts:7
 
 ## Function: html()
 
@@ -271,10 +296,13 @@ A server-only template can't be rendered inside a normal Lit template.
 **Parameters**
 
 <div class="typedoc-table"><table>
+<thead>
 <tr>
 <th>Parameter</th>
 <th>Type</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td>
 
@@ -299,6 +327,7 @@ A server-only template can't be rendered inside a normal Lit template.
 
 </td>
 </tr>
+</tbody>
 </table></div>
 
 **Returns**
@@ -316,7 +345,7 @@ function pageAssetsCustomLocation(): ServerRenderedTemplate;
 ```
 
 Overrides the default location for routes sibling assets, which is normally
-right before the closing `<head/>` tag.
+right before the closing `</head>` tag.
 
 **Returns**
 
@@ -334,7 +363,7 @@ export const document = (_props) => html`
     <head>
       <!-- ... -->
 
-      <!-- NOTE: Provide your marker for route sibling assets injection.  -->
+      <!-- NOTE: Route sibling assets injection marker.  -->
       ${pageAssetsCustomLocation()}
 
       <!-- ... -->
@@ -349,4 +378,4 @@ export const document = (_props) => html`
 
 **Defined in**
 
-packages/server/dist/document.d.ts:33
+packages/server/dist/assets.d.ts:32

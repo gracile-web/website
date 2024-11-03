@@ -1,4 +1,4 @@
-# 🎇 Starter projects
+# <i-c o='ph:fire-duotone'></i-c>Starter Projects
 
 <div class="git-only">
 
@@ -17,14 +17,15 @@ A thin, full-stack, **web** framework.
 
 **Starters**:
 
-- [Basics](#basics)
-- [Minimal setup (static)](#minimal-setup-static)
-- [Minimal server (express)](#minimal-server-express)
-- [Minimal server (hono)](#minimal-server-hono)
+- [Starter Projects](#starter-projects)
+  - [Basics](#basics)
+  - [Minimal setup (static)](#minimal-setup-static)
+  - [Minimal server (Express)](#minimal-server-express)
+  - [Minimal server (Hono)](#minimal-server-hono)
 
 </div>
 
-<section class="cards">
+<section class="cards tiles">
 
 <div class="card"><div class="card-content">
 
@@ -97,7 +98,7 @@ npx degit gracile-web/starter-projects/templates/minimal-static my-project
 
 <div class="card"><div class="card-content">
 
-## Minimal server (express)
+## Minimal server (Express)
 
 A Gracile handler, already set up with Express and static file serving.
 
@@ -127,7 +128,7 @@ npx degit gracile-web/starter-projects/templates/minimal-server-express my-proje
 
 <div class="card"><div class="card-content">
 
-## Minimal server (hono)
+## Minimal server (Hono)
 
 A Gracile handler, already set up with Hono and static file serving.
 

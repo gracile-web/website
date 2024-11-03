@@ -1,4 +1,4 @@
-# Developer experience
+## <i-c o='ph:head-circuit-duotone'></i-c>Developer experience
 
 One of the primary reasons for building Gracile was to participate in unifying full-stack Web Components development.  
 While there is room to catch well-known stacks, we are starting with an advantage:

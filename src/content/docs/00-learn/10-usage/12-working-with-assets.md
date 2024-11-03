@@ -1,4 +1,4 @@
-# Working with assets
+# <i-c o='ph:code-block-duotone'></i-c>Working with assets
 
 Thanks to its solid Vite foundations, you have plenty of ways to work with any kind of static or optimized assets, from fonts to WASM.
 

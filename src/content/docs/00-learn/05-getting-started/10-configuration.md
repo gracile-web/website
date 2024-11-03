@@ -1,4 +1,4 @@
-# ⚙️ Configuration
+# <i-c o='ph:gear-duotone'></i-c>Configuration
 
 There aren't many things (yet) to configure with Gracile, and most of your endeavors are achievable by interacting with the Vite/Rollup plugin pipeline.
 

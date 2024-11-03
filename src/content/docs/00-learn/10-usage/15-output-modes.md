@@ -71,7 +71,7 @@ do a better job with already smaller chunks as a starting point.
 That's what the per-route splitting strategy is providing.
 
 > [!NOTE]  
-> For now, the Gracile CSR add-on is under an experimental phase.  
+> For now, the [Gracile CSR add-on](/docs/add-ons/client-router/) is under an experimental phase.  
 > It will work with both "Static" and "Server" modes.
 
 ## Static mode (SSG)
@@ -154,7 +154,7 @@ import { handler } from './dist/server/entrypoint.js';
 
 const app = express();
 
-app.use(express.static(gracile.getClientDistPath(import.meta.url)));
+app.use(express.static(gracile.getClientBuildPath(import.meta.url)));
 
 app.use((req, res, next) => {
   // TIP: The Express adapter will pick-up your locals automatically.
@@ -210,7 +210,10 @@ import { handler } from './dist/server/entrypoint.js';
 /** @type {Hono<{ Variables: Gracile.Locals }>} */
 const app = new Hono();
 
-app.get('*', serveStatic({ root: gracile.getClientDistPath(import.meta.url) }));
+app.get(
+  '*',
+  serveStatic({ root: gracile.getClientBuildPath(import.meta.url) }),
+);
 
 app.use((c, next) => {
   // TIP: The Hono adapter will pick-up your locals (called "variables" by Hono) automatically.

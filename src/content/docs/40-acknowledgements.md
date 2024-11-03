@@ -1,4 +1,4 @@
-# Acknowledgements
+## <i-c o='ph:hands-praying-duotone'></i-c>Acknowledgements
 
 Gracile isn't made from scratch. It's a relatively thin abstraction layer built on the shoulders of giants, and inspired by prior, widespread knowledge.  
 This is a glimpse of the OSS projects that made it work.

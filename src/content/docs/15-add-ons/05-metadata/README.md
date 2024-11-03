@@ -35,6 +35,7 @@ export const document = (props: { url: URL; title?: string }) => html`
         pageTitle: `My Page | ${props.title ?? 'Untitled'}`,
         ogTitle: props.title,
         pageDescription: 'The description…',
+        // ...
       })}
     </head>
 

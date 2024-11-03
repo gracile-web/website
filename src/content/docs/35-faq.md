@@ -1,4 +1,4 @@
-# FAQ
+# <i-c o='ph:seal-question-duotone'></i-c>FAQ
 
 You might wonder yourself what Gracile has to offer which makes it apart from existing solutions. This section addresses general and specific issues about this full-stack web framework.
 
